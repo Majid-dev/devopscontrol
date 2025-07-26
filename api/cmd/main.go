@@ -1,8 +1,8 @@
 package main
 
 import (
-	"devopscontrol-api/internal/handler"
-	"devopscontrol-api/internal/service"
+	"api/internal/handler"
+	"api/internal/service"
 	"log"
 
 	"github.com/gofiber/fiber/v2"

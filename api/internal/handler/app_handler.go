@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"devopscontrol-api/internal/model"
-	"devopscontrol-api/internal/service"
+	"api/internal/model"
+	"api/internal/service"
 
 	"github.com/gofiber/fiber/v2"
 )

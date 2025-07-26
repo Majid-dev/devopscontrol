@@ -1,8 +1,8 @@
 package service
 
 import (
-	"devopscontrol-api/internal/model"
-	"devopscontrol-api/internal/util"
+	"api/internal/model"
+	"api/internal/util"
 	"log"
 	"sync"
 
