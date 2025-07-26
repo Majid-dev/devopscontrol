@@ -1,0 +1,7 @@
+appName: "sample-app"
+image:
+  repository: nginx
+  tag: "latest"
+  port: 80
+
+domain: "sample.local"
