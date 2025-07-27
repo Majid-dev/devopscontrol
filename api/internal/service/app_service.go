@@ -4,6 +4,7 @@ import (
 	"api/internal/model"
 	"api/internal/util"
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -35,9 +36,26 @@ func (s *AppService) CreateApp(app model.App) model.App {
 		log.Printf("✅ Repo cloned to: %s", tmpPath)
 		app.Status = "cloned"
 	}
+
+	val := util.HelmValues{
+		AppName: app.Name,
+		Domain:  app.Domain,
+	}
+	val.Image.Repository, val.Image.Tag = parseImage(app.Image)
+	val.Image.Port = app.Port
+
+	err = util.RenderHelmAndSave(val, "./chart", "./tmp/"+app.Name)
 	s.apps[app.ID] = app
 
 	return app
+}
+
+func parseImage(image string) (string, string) {
+	parts := strings.Split(image, ":")
+	if len(parts) == 2 {
+		return parts[0], parts[1]
+	}
+	return image, "latest"
 }
 
 func (s *AppService) GetApp(id string) (model.App, bool) {
