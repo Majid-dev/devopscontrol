@@ -34,3 +34,6 @@ go.work.sum
 # Node.js
 node_modules/
 dist/
+
+
+api/tmp/
