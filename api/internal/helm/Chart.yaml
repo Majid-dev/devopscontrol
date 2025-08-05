@@ -1,0 +1,5 @@
+apiVersion: v2
+name: {{ .Name }}
+description: Auto-generated Helm chart for {{ .Name }}
+version: 0.1.0
+appVersion: "{{ .AppVersion }}"

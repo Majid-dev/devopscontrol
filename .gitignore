@@ -36,4 +36,4 @@ node_modules/
 dist/
 
 
-api/tmp/
+api/generated/

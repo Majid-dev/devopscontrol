@@ -2,9 +2,12 @@ package service
 
 import (
 	"api/internal/model"
-	"api/internal/util"
+	"api/internal/utils"
+	"fmt"
 	"log"
-	"strings"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"sync"
 
 	"github.com/google/uuid"
@@ -28,7 +31,7 @@ func (s *AppService) CreateApp(app model.App) model.App {
 	app.ID = uuid.New().String()
 	app.Status = "created"
 	// Try to clone the repo
-	tmpPath, err := util.CloneGitRepo(app.GitRepo, app.Branch)
+	tmpPath, err := utils.CloneGitRepo(app.GitRepo, app.Branch)
 	if err != nil {
 		log.Printf("❌ Git clone failed: %v", err)
 		app.Status = "clone_failed"
@@ -36,26 +39,7 @@ func (s *AppService) CreateApp(app model.App) model.App {
 		log.Printf("✅ Repo cloned to: %s", tmpPath)
 		app.Status = "cloned"
 	}
-
-	val := util.HelmValues{
-		AppName: app.Name,
-		Domain:  app.Domain,
-	}
-	val.Image.Repository, val.Image.Tag = parseImage(app.Image)
-	val.Image.Port = app.Port
-
-	err = util.RenderHelmAndSave(val, "./chart", "./tmp/"+app.Name)
-	s.apps[app.ID] = app
-
 	return app
-}
-
-func parseImage(image string) (string, string) {
-	parts := strings.Split(image, ":")
-	if len(parts) == 2 {
-		return parts[0], parts[1]
-	}
-	return image, "latest"
 }
 
 func (s *AppService) GetApp(id string) (model.App, bool) {
@@ -75,4 +59,46 @@ func (s *AppService) ListApps() []model.App {
 		apps = append(apps, app)
 	}
 	return apps
+}
+
+func GenerateManifest(input model.App) error {
+	chartPath := filepath.Join("generated", input.Name)
+	valuesFile := filepath.Join(chartPath, "values.yaml")
+
+	cmd := exec.Command("helm", "template", input.Name, chartPath, "--values", valuesFile)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("helm error: %s", string(out))
+	}
+
+	manifestDir := filepath.Join(chartPath, "manifests")
+	if err := os.MkdirAll(manifestDir, 0755); err != nil {
+		return fmt.Errorf("failed to create manifests directory: %w", err)
+	}
+
+	manifestPath := filepath.Join(manifestDir, input.Name+".yaml")
+	if err := os.WriteFile(manifestPath, out, 0644); err != nil {
+		return fmt.Errorf("failed to write manifest to file: %w", err)
+	}
+
+	fmt.Printf("✅ Manifest generated and saved to %s\n", manifestPath)
+	return nil
+}
+
+func InstallHelmRelease(app model.App) error {
+	chartPath := filepath.Join("generated", app.Name)
+	valuesFile := filepath.Join(chartPath, "values.yaml")
+	releaseName := app.Name
+	namespace := "default"
+
+	cmd := exec.Command("helm", "upgrade", "--install", releaseName, chartPath,
+		"--namespace", namespace,
+		"--values", valuesFile)
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("helm install failed: %v\nOutput: %s", err, string(out))
+	}
+
+	return nil
 }

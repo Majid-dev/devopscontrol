@@ -6,6 +6,7 @@ metadata:
     kubernetes.io/ingress.class: traefik
     cert-manager.io/cluster-issuer: "letsencrypt"
 spec:
+  ingressClassName: traefik
   rules:
     - host: {{ .Values.domain }}
       http:
@@ -16,7 +17,7 @@ spec:
               service:
                 name: {{ .Values.name }}
                 port:
-                  number: 80
+                  number: {{ .Values.image.port }}
   tls:
     - hosts:
         - {{ .Values.domain }}

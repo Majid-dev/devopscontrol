@@ -1,0 +1,5 @@
+name: {{ .Name }}
+image:
+  name: {{ .Image }}
+  port: {{ .Port }}
+domain: {{ .Domain }}
