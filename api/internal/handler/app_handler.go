@@ -19,7 +19,7 @@ func NewAppHandler(s *service.AppService) *AppHandler {
 func (h *AppHandler) RegisterRoutes(app *fiber.App) {
 	api := app.Group("/api/apps")
 	api.Post("/", h.CreateApp)
-	api.Get("/", h.ListApps)
+	api.Get("/apps", h.ListApps)
 	api.Get("/:id", h.GetApp)
 }
 
@@ -71,5 +71,12 @@ func (h *AppHandler) GetApp(c *fiber.Ctx) error {
 }
 
 func (h *AppHandler) ListApps(c *fiber.Ctx) error {
-	return c.JSON(h.AppService.ListApps())
+	apps, err := service.ListDeployedApps()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(apps)
 }

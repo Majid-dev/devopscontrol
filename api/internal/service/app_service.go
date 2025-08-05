@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -102,4 +103,62 @@ func InstallHelmRelease(app model.App) error {
 
 	fmt.Println("✅Helm Output:\n", string(out))
 	return nil
+}
+
+func ListDeployedApps() ([]model.AppStatus, error) {
+	cmd := exec.Command("kubectl", "get", "pods", "-A", "-l", "app.kubernetes.io/instance", "-o", "custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,STATUS:.status.phase,READY:.status.containerStatuses[0].ready,RESTARTS:.status.containerStatuses[0].restartCount,AGE:.metadata.creationTimestamp", "--no-headers")
+
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("kubectl get pods failed: %w", err)
+	}
+
+	lines := strings.Split(string(output), "\n")
+	appMap := make(map[string]*model.AppStatus)
+
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		parts := strings.Fields(line)
+		if len(parts) < 6 {
+			continue
+		}
+
+		ns := parts[0]
+		podName := parts[1]
+		status := parts[2]
+		ready := parts[3]
+		restarts := parts[4]
+		age := parts[5]
+
+		appName := strings.Split(podName, "-")[0]
+
+		app, ok := appMap[appName]
+		if !ok {
+			app = &model.AppStatus{
+				Name:      appName,
+				Namespace: ns,
+				Status:    status,
+				Age:       age,
+			}
+			appMap[appName] = app
+		}
+
+		app.Pods = append(app.Pods, model.PodStatus{
+			Name:     podName,
+			Status:   status,
+			Ready:    ready,
+			Restarts: restarts,
+			Age:      age,
+		})
+	}
+
+	// convert to slice
+	apps := []model.AppStatus{}
+	for _, a := range appMap {
+		apps = append(apps, *a)
+	}
+
+	return apps, nil
 }

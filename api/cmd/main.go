@@ -18,4 +18,6 @@ func main() {
 
 	log.Println("🚀 DevOpsControl API is running on http://localhost:3000")
 	log.Fatal(app.Listen(":3000"))
+
+	app.Get("/apps", appHandler.ListApps)
 }
