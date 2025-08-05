@@ -100,5 +100,6 @@ func InstallHelmRelease(app model.App) error {
 		return fmt.Errorf("helm install failed: %v\nOutput: %s", err, string(out))
 	}
 
+	fmt.Println("Helm Output:\n", string(out))
 	return nil
 }
