@@ -106,7 +106,7 @@ func InstallHelmRelease(app model.App) error {
 }
 
 func ListDeployedApps() ([]model.AppStatus, error) {
-	cmd := exec.Command("kubectl", "get", "pods", "-A", "-l", "app.kubernetes.io/instance", "-o", "custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,STATUS:.status.phase,READY:.status.containerStatuses[0].ready,RESTARTS:.status.containerStatuses[0].restartCount,AGE:.metadata.creationTimestamp", "--no-headers")
+	cmd := exec.Command("kubectl", "get", "pods", "-A", "-l", "devopscontrol/app", "-o", "custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,STATUS:.status.phase,READY:.status.containerStatuses[0].ready,RESTARTS:.status.containerStatuses[0].restartCount,AGE:.metadata.creationTimestamp", "--no-headers")
 
 	output, err := cmd.Output()
 	if err != nil {

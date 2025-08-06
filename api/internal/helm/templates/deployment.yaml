@@ -2,6 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.name }}
+  labels:
+    app: {{ .Values.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    devopscontrol/app: "true"
 spec:
   replicas: 1
   selector:
@@ -11,6 +15,8 @@ spec:
     metadata:
       labels:
         app: {{ .Values.name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        devopscontrol/app: "true"
     spec:
       containers:
         - name: {{ .Values.name }}

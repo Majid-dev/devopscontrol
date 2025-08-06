@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>DevOpsControl - App List</title>
+</head>
+<body>
+  <h1>Deployed Applications</h1>
+  <ul id="app-list"></ul>
+
+  <script>
+    async function loadApps() {
+      const res = await fetch('api/apps');
+      const apps = await res.json();
+
+      const list = document.getElementById('app-list');
+      list.innerHTML = '';
+
+      apps.forEach(app => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <strong>${app.name}</strong> (Status: ${app.status}) 
+          <button onclick="deleteApp('${app.name}')">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    async function deleteApp(name) {
+      const res = await fetch(`/api/${name}`, { method: 'DELETE' });
+      const result = await res.json();
+      alert(result.message || result.error);
+      loadApps(); // Refresh list
+    }
+
+    loadApps();
+  </script>
+</body>
+</html>

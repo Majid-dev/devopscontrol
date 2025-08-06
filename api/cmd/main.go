@@ -17,7 +17,12 @@ func main() {
 	appHandler.RegisterRoutes(app)
 
 	log.Println("🚀 DevOpsControl API is running on http://localhost:3000")
+	app.Static("/", "./web")
 	log.Fatal(app.Listen(":3000"))
+
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendFile("./web/index.html")
+	})
 
 	app.Get("/apps", appHandler.ListApps)
 	app.Delete("/:name", appHandler.DeleteApp)
