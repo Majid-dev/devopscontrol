@@ -4,6 +4,7 @@ import (
 	"api/internal/model"
 	"api/internal/service"
 	"api/internal/utils"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -17,10 +18,11 @@ func NewAppHandler(s *service.AppService) *AppHandler {
 }
 
 func (h *AppHandler) RegisterRoutes(app *fiber.App) {
-	api := app.Group("/api/apps")
+	api := app.Group("/api")
 	api.Post("/", h.CreateApp)
 	api.Get("/apps", h.ListApps)
 	api.Get("/:id", h.GetApp)
+	api.Delete("/:name", h.DeleteApp)
 }
 
 func (h *AppHandler) CreateApp(c *fiber.Ctx) error {
@@ -79,4 +81,18 @@ func (h *AppHandler) ListApps(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(apps)
+}
+
+func (h *AppHandler) DeleteApp(c *fiber.Ctx) error {
+	name := c.Params("name")
+	if name == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "app name is required"})
+	}
+
+	err := service.DeleteApp(name)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"message": fmt.Sprintf("App %s deleted successfully", name)})
 }

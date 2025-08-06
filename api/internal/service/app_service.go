@@ -162,3 +162,12 @@ func ListDeployedApps() ([]model.AppStatus, error) {
 
 	return apps, nil
 }
+
+func DeleteApp(name string) error {
+	cmd := exec.Command("helm", "uninstall", name)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to uninstall app: %s", string(output))
+	}
+	return nil
+}

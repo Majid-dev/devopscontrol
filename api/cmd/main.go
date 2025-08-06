@@ -20,4 +20,5 @@ func main() {
 	log.Fatal(app.Listen(":3000"))
 
 	app.Get("/apps", appHandler.ListApps)
+	app.Delete("/:name", appHandler.DeleteApp)
 }
